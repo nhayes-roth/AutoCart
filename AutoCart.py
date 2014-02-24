@@ -3,7 +3,7 @@ import cookielib
 import urllib
 import urllib2
 import webbrowser
-import requests
+import mechanize
 
 # important variables
 user_email 			= 'pantry@liketwice.com'
@@ -11,33 +11,43 @@ user_password 		= 'twice123'
 authentication_url	= 'https://www.instacart.com/accounts/login'
 spreadhseet_url		= 'https://docs.google.com/spreadsheet/ccc?key=0AofjsFst2vbidGdGNGFtM2VqTDExZWhJb2g5Nm1KUEE&usp=sharing'
 
-# store cookies and create an opener that will hold them
-cj = cookielib.CookieJar()
-opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+browser = mechanize.Browser()
+browser.open(authentication_url)
+browser.select_form(nr = 0)
+browser.form['user[email]'] = user_email
+browser.form['user[password]'] = user_password
+response = browser.submit()
 
-# Install our opener
-urllib2.install_opener(opener)
+# # First attempt
+# # store cookies and create an opener that will hold them
+# cj = cookielib.CookieJar()
+# opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
-# Input parameters we are going to send
-payload = {
-	'user[source]': 'web',
-	'user[email]': user_email,
-	'user[password]': user_password
-  }
+# # Install our opener
+# urllib2.install_opener(opener)
 
-# Use urllib to encode the payload
-data = urllib.urlencode(payload)
+# # Input parameters we are going to send
+# payload = {
+# 	'user[source]': 'web',
+# 	'user[email]': user_email,
+# 	'user[password]': user_password
+#   }
 
-# Build our Request object (supplying 'data' makes it a POST)
-req = urllib2.Request(authentication_url, data)
+# # Use urllib to encode the payload
+# data = urllib.urlencode(payload)
 
-# Make the request and read the response
-resp = urllib2.urlopen(req)
-contents = resp.read()		# contains the html after loggin into instacart
+# # Build our Request object (supplying 'data' makes it a POST)
+# req = urllib2.Request(authentication_url, data)
+
+# # Make the request and read the response
+# resp = urllib2.urlopen(req)
+# contents = resp.read()		# contains the html after loggin into instacart
+
+
 
 # save html to file
 Html_file = open("instacart_html", "w")
-Html_file.write(contents)
+Html_file.write(response.read())
 Html_file.close()
 
 # did we make it?
