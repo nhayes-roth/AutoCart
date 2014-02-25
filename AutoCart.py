@@ -4,14 +4,16 @@ import urllib
 import urllib2
 import webbrowser
 import mechanize
-import re
+import requests
 
 # important variables
 user_email 			= 'pantry@liketwice.com'
 user_password 		= 'twice123'
 authentication_url	= 'https://www.instacart.com/accounts/login'
 search_url			= 'https://www.instacart.com/store?#safeway/search/'
-spreadhseet_url		= 'https://docs.google.com/spreadsheet/ccc?key=0AofjsFst2vbidGdGNGFtM2VqTDExZWhJb2g5Nm1KUEE&usp=sharing'
+put_prefix 			= 'https://www.instacart.com/api/v2/cart/cart_items/'
+put_suffix			= '?cart_id=135798&token=pThYyJBaysCdCJWs1cuJ&source=web&warehouse_id=1&zone_id=1'
+item_id 			= '42078'
 orders_filename		= 'orders.txt'
 
 # log into the site
@@ -22,16 +24,41 @@ browser.form['user[email]'] = user_email
 browser.form['user[password]'] = user_password
 response = browser.submit()
 
-# iterate through the orders,
+# save html to file
+Html_file = open("instacart_html", "w")
+Html_file.write(response.read())
+Html_file.close()	
+
+##### try to imitate a single PUT request
+# request parameters
+parameters = {	'qty' : '1', 'created_at' :'1393287110.459'}
+csrf_token = 'ZqHb0C+OBQTHT3y0gTCL9XajoRRpGmQgHvzXHPRnhjg'
+header = {'Referrer' : authentication_url, 'X-CSRF-Token' : csrf_token}
+cookie = browser._ua_handlers['_cookies'].cookiejar
+
+cookie_dict = dict([(c.name, c.value) for c in list(cookie)])
+
+print
+print cookie_dict
+print
+
+# submit the form
+r = requests.put(put_prefix+item_id+put_suffix, params=parameters, cookies=cookie_dict, headers=header)
+print
+print r.content
+print
+
+# iterate through the orders
 with open(orders_filename) as f:
 	for line in f:
 		item_name = line[:-2]
 		item_count = int(line[-2:])
 		# follow the link to the appropriate search url
-		print "Item name: ", item_name
-		print "Item count: ", item_count
 		browser.open(search_url + item_name)
-		print "URL", browser.geturl()
+
+		##### try to imitate a single PUT request
+		# TODO move put request here
+		
 		# click the add to cart button
 		# print "ITEM URL: ", browser.geturl()
 		# for link in browser.links():
@@ -47,11 +74,6 @@ with open(orders_filename) as f:
 # for form in browser.forms():
 # 	print "Form name: ", form.name
 # 	print form
-
-# save html to file
-Html_file = open("instacart_html", "w")
-Html_file.write(response.read())
-Html_file.close()
 
 # did we make it?
 print "success"
